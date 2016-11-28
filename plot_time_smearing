@@ -1,0 +1,49 @@
+{
+  TFile f("/cp/s2/elagin/sph_out_Te130_center_1k.root"); //or the full path to the file
+  TTree* t = (TTree*)f.Get("epgTree");
+
+  TH1F hT_scint("hT_scint","hT_scint",90,30,60);
+  TH1F shT_scint("shT_scint","shT_scint",90,30,60);
+  TH1F hT_cher("hT_cher","hT_cher",90,30,60);
+  TH1F shT_cher("shT_cher","shT_cher",90,30,60);
+
+  const int MAX_epg=100000;
+  int evt_num;
+  int N_phot;
+  int process[MAX_epg]; //0=scintillation, 1=Cherenkov
+  float PE_time[MAX_epg];
+  float true_time[MAX_epg];
+
+
+  float smear;
+  TRandom rnd;
+
+  t->SetBranchAddress("evt_num",&evt_num);
+  t->SetBranchAddress("N_phot",&N_phot);
+  t->SetBranchAddress("process",process);
+  t->SetBranchAddress("PE_time",PE_time);
+  t->SetBranchAddress("true_time",true_time);
+  t->SetBranchAddress("smear",smear);
+
+  int N = t->GetEntries();
+  for(int i=0;i!=100;++i)
+  {
+    t->GetEntry(i);
+    cout<<"evt_num = "<<evt_num<<"   PE_time[17] = "<<PE_time[17]<<"  true_time = "<<true_time[17]<<"  process[17] = "<<process[17]<<en$
+    for(int j=0;j!=N_phot;++j)
+    {
+      smear = rnd.Gaus(0,1);
+      if(process[j]==0)
+        hT_scint->Fill(true_time[j]);
+        shT_scint->Fill(true_time[j] + smear);
+      if(process[j]==1)
+        hT_cher->Fill(true_time[j]);
+        shT_cher->Fill(true_time[j] + smear);
+    }
+  }
+  hT_scint->Draw();
+  shT_scint->Draw("same");
+  hT_cher->Draw("same");
+  shT_cher->Draw("same");
+
+}
