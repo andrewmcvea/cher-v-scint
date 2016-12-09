@@ -33,12 +33,12 @@
     for(int j=0;j!=N_phot;++j)
     {
       smear = rnd.Gaus(0,1);
-      if(process[j]==0)
+      if(process[j]==0){
         hT_scint->Fill(true_time[j]);
-        shT_scint->Fill(true_time[j] + smear);
-      if(process[j]==1)
+        shT_scint->Fill(true_time[j] + smear);}
+      if(process[j]==1){
         hT_cher->Fill(true_time[j]);
-        shT_cher->Fill(true_time[j] + smear);
+        shT_cher->Fill(true_time[j] + smear);}
     }
   }
   hT_scint->Draw();
