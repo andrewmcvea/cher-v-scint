@@ -13,14 +13,18 @@
   int process[MAX_epg]; //0=scintillation, 1=Cherenkov
   float PE_time[MAX_epg];
   float true_time[MAX_epg];
-
+  const int M=22;
 
   float smear;
+  float smear2;
   TRandom rnd;
-  float ihT_scint;
-  float ishT_scint;
-  float ihT_cher;
-  float ishT_cher;
+  float ihT_scint[M];
+  float ishT_scint[M];
+  float ihT_cher[M];
+  float ishT_cher[M];
+  float ratio[M];
+  float sratio[M];
+  float timer[M];
 
   t->SetBranchAddress("evt_num",&evt_num);
   t->SetBranchAddress("N_phot",&N_phot);
@@ -29,36 +33,53 @@
   t->SetBranchAddress("true_time",true_time);
 
   int N = t->GetEntries();
-  for(int i=0;i!=10;++i)
+  for(int i=0;i!=100;++i)
   {
     t->GetEntry(i);
     cout<<"evt_num = "<<evt_num<<"   PE_time[17] = "<<PE_time[17]<<"  true_time = "<<true_time[17]<<"  process[17] = "<<process[17]<<endl;
     for(int j=0;j!=N_phot;++j)
     {
       smear = rnd.Gaus(0,1);
+      smear2 = rnd.Gaus(0,0);
       if(process[j]==0){
-        hT_scint->Fill(true_time[j]);
-        shT_scint->Fill(true_time[j] + smear);}
+        hT_scint->Fill(true_time[j] + smear);
+        shT_scint->Fill(true_time[j] + smear2);}
       if(process[j]==1){
-        hT_cher->Fill(true_time[j]);
-        shT_cher->Fill(true_time[j] + smear);}
+        hT_cher->Fill(true_time[j] + smear);
+        shT_cher->Fill(true_time[j] + smear2);}
     }
   }
 
-  ihT_scint = hT_scint->Integral(0,8);
-  ishT_scint = shT_scint->Integral(0,8);
-  ihT_cher = hT_cher->Integral(0,8);
-  ishT_cher = shT_cher->Integral(0,8);
+  for(int k=8;k!=30;++k)
+  {
+    ihT_scint[k-8] = hT_scint->Integral(0,k);
+    ishT_scint[k-8] = shT_scint->Integral(0,k);
+   ihT_cher[k-8] = hT_cher->Integral(0,k);
+    ishT_cher[k-8] = shT_cher->Integral(0,k);
+    ratio[k-8] = ihT_cher[k-8]/ihT_scint[k-8];
+    sratio[k-8] = ishT_cher[k-8]/ishT_scint[k-8];
+    timer[k-8] = (k*.33)+30;
+    printf("Timer:\t%f\n",timer[k-8]);
+  }
 
-  ratio = ihT_cher/ihT_scint;
-  sratio = ishT_cher/ishT_scint;
+  //printf("Ratio:\t%f\n",ratio);
+  //printf("Smeared Ratio:\t%f\n",sratio);
 
-  printf("Ratio:\t%f\n",ratio);
-  printf("Smeared Ratio:\t%f\n",sratio);
-
+  TCanvas *c1 = new TCanvas("c1", "c1");
+  c1->Divide(2,2);
+  c1->cd(1);
   hT_scint->Draw();
-  shT_scint->Draw("same");
   hT_cher->Draw("same");
+
+  c1->cd(2);
+  TGraph *gr1 = new TGraph(M, timer, ratio);
+  gr1->Draw("AC*");
+
+  c1->cd(3);
+  shT_scint->Draw();
   shT_cher->Draw("same");
 
+  c1->cd(4);
+  TGraph *gr2 = new TGraph(M, timer, sratio);
+  gr2->Draw("AC*");
 }
